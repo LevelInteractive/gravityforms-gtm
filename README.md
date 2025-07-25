@@ -2,6 +2,9 @@
 
 This is a lightweight plugin that changes the default confirmation behavior for forms that "redirect". The plugin will add an interstitial message and push a structured `dataLayer` event to Google Tag Manager containing any fields with a `name` property.
 
+> [!IMPORTANT]
+> This plugin forces all forms to use the AJAX submission mode. This can pose issues for pages that embed the same form on a page twice. Just be aware to QA after installing.
+
 ## DataLayer Event Structure
 
 ```javascript
