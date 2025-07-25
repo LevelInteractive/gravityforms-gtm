@@ -46,7 +46,7 @@ By default, the redirect interstitial content is set to `We are processing your 
 
 ```php
 add_filter('lvl:gforms_gtm/redirect_interstitial_content', function($content) {
-  return 'Please wait, we're processing your request.';
+  return "Please wait, we're processing your request.";
 }, 10, 2);
 ```
 
