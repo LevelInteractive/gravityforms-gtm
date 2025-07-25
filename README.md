@@ -9,7 +9,7 @@ This is a lightweight plugin that changes the default confirmation behavior for 
 {
   event: 'lvl.form_submit',
   form: {
-    id: 'gravity-forms:0-4, // 0 is the site ID (will be 0 if not using multi-site)
+    id: 'gravity-forms:0-4', // 0 is the site ID (will be 0 if not using multi-site)
     name: 'Contact Us', // The human readable form name
     provider: 'wordpress:www.level.agency',
     field_values: {
