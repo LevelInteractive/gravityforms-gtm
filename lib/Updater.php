@@ -201,7 +201,7 @@ class Updater
       if (empty($release['notes']['html']))
         continue;
 
-      $changelog[] = "<h3>{$release['tag_name']}</h3>" . $release['notes']['html'];
+      $changelog[] = "<h3>{$release['tag_name']}</h3>" . wp_kses_post($release['notes']['html']);
     }
 
     return implode('', $changelog);
