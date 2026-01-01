@@ -43,7 +43,7 @@ add_filter('lvl:gravityforms/gtm/event_namespace', function($namespace) {
 ```
 
 > [!TIP]
-> We highly recommend using a `snake_case` formatted string when overriding/customizing the namespace. **Note** -- It is not possible to remove the namespace at this time. We may consider this in future releases.
+> We highly recommend using a `snake_case` formatted string when overriding/customizing the namespace. **It is not possible to remove the namespace at this time.** We may consider this in future releases.
 
 ### Redirect Delay
 
@@ -57,7 +57,7 @@ add_filter('lvl:gravityforms/gtm/redirect_delay', function($delay) {
 ```
 
 > [!NOTE]
-> We set a minimum redirect delay of `500` milliseconds to ensure there is at least a tiny speedbump to allow tags to execute before unloading the page. **Note** -- It is not possible to remove the redirect at this time. We may consider this in future releases.
+> We set a minimum redirect delay of `500` milliseconds to ensure there is at least a tiny speedbump to allow tags to execute before unloading the page. **It is not possible to remove the redirect delay at this time.** We may consider this in future releases.
 
 ### Interstitial Text
 
