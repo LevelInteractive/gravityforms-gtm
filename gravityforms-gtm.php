@@ -67,8 +67,11 @@ class Adapter
 
   public function output_css_vars(): void
   {
+    $color = apply_filters(self::namespace('redirect_spinner_color'), $this->redirect_spinner_color);
+    $color = preg_match('/^#[a-fA-F0-9]{3,6}$|^[a-zA-Z]+$|^rgb/', $color) ? $color : $this->redirect_spinner_color;
+
     $vars = [
-      '--gform-redirect-spinner-color' => apply_filters(self::namespace('redirect_spinner_color'), $this->redirect_spinner_color),
+      '--gform-redirect-spinner-color' => esc_html($color),
     ];
 
     echo "<style>
@@ -118,7 +121,7 @@ class Adapter
     $html = [
       '<div class="gform_interstitial_message">',
         '<div class="gform_interstitial_message_spinner"></div>',
-        '<div class="gform_interstitial_message_text">' . $text . '</div>',
+        '<div class="gform_interstitial_message_text">' . wp_kses_post($text) . '</div>',
       '</div>',
     ];
 
@@ -142,8 +145,8 @@ class Adapter
       <script>
       window.dataLayer = window.dataLayer || [];
       dataLayer.push({
-        event: "' . $event_namespace . '.form_submit",
-        form: ' . json_encode($form_object) . ',
+        event: ' . wp_json_encode($event_namespace . '.form_submit') . ',
+        form: ' . wp_json_encode($form_object) . ',
       });
       </script>
     ';
