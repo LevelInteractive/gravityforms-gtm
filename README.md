@@ -1,4 +1,4 @@
-# gravityforms-gtm
+# Plugin: gravityforms-gtm
 
 This is a lightweight plugin that changes the default confirmation behavior for forms that "redirect". The plugin will add an interstitial message and push a structured `dataLayer` event to Google Tag Manager containing any fields with a `name` property. 
 
