@@ -3,7 +3,7 @@
  * Plugin Name:       Gravity Forms - GTM Adapter
  * Plugin URI:        https://www.level.agency
  * Description:       A better GTM integration for Gravity Forms. Overrides the default confirmation behavior to allow for a redirect interstitial and a global submit event.
- * Version:           1.0.0
+ * Version:           2.0.0
  * Requires at least: 6.3
  * Requires PHP:      8.0
  * License:           MIT
@@ -18,14 +18,14 @@ use GFAPI;
 if (! defined('WPINC'))
   die;
 
-const VERSION = '1.0.0';
+const VERSION = '2.0.0';
 
 class Adapter
 {
   public static string $_global_namespace = 'lvl';
   public static string $_plugin_namespace = 'gravityforms/gtm';
 
-  public int $redirect_delay = 2000;
+  public int $redirect_delay = 1500;
   public string $redirect_interstitial = "We are processing your submission. Please wait...";
   public string $redirect_spinner_color = '#000';
 
@@ -52,17 +52,23 @@ class Adapter
 
   public function init()
   {
-    add_action('wp_head', [$this, 'add_css_vars'], 1, 2);
-    add_filter('gform_confirmation', [$this, 'confirmation_override'], 20, 4);
-    add_filter('gform_form_args', [$this, 'force_ajax_submission_mode'], 10, 1);
-    add_filter('gform_form_tag', [$this, 'modify_form_tag'], 20, 2);
+    add_action('wp_head', [$this, 'output_css_vars'], 1, 2);
+    add_filter('gform_confirmation', [$this, 'confirmation_override'], 50, 4);
+    add_filter('gform_form_args', [$this, 'force_ajax_submission_mode'], 50, 1);
+    add_filter('gform_form_tag', [$this, 'modify_form_tag'], 50, 2);
     add_action('wp_enqueue_scripts', [$this, 'load_stylesheet'], 10, 2);
   }
 
-  public function add_css_vars(): void
+  public function set_redirect_delay(): void
+  {
+    $milliseconds = apply_filters(self::namespace('redirect_delay'), $this->redirect_delay);
+    $this->redirect_delay = (is_int($milliseconds) && $milliseconds >= 500) ? $milliseconds : $this->redirect_delay;
+  }
+
+  public function output_css_vars(): void
   {
     $vars = [
-      '--gform-redirect-spinner-color' => apply_filters('lvl:gforms_gtm/redirect_spinner_color', $this->redirect_spinner_color),
+      '--gform-redirect-spinner-color' => apply_filters(self::namespace('redirect_spinner_color'), $this->redirect_spinner_color),
     ];
 
     echo "<style>
@@ -74,7 +80,7 @@ class Adapter
 
   public function load_stylesheet(): void
   {
-    wp_enqueue_style(self::namespace('styles'), plugin_dir_url(__FILE__) . 'public/styles.css', [], '1.0.0'); 
+    wp_enqueue_style(self::namespace('styles'), plugin_dir_url(__FILE__) . 'public/styles.css', [], VERSION); 
   }
 
   public function force_ajax_submission_mode(array $form_args): array
@@ -98,6 +104,7 @@ class Adapter
     if (strpos($form_tag, 'data-form-name') !== false)
       return $form_tag;
 
+    $form_tag = str_replace('data-formid', ' data-provider="' . self::make_provider_id() . '" data-formid', $form_tag);
     $form_tag = str_replace('data-formid', ' data-form-name="' . $form['title'] . '" data-formid', $form_tag);
     $form_tag = str_replace('data-formid', ' data-form-id="' . self::make_form_id($form['id']) . '" data-formid', $form_tag);
 
@@ -106,7 +113,7 @@ class Adapter
 
   public function get_redirect_interstitial(): string
   {
-    $text = apply_filters('lvl:gforms_gtm/redirect_interstitial', $this->redirect_interstitial);
+    $text = apply_filters(self::namespace('redirect_interstitial'), $this->redirect_interstitial);
 
     $html = [
       '<div class="gform_interstitial_message">',
@@ -128,17 +135,19 @@ class Adapter
       'field_values' => self::get_named_fields_from_entry($form['id'], $entry),
     ];
 
+    $this->set_redirect_delay();
+    $event_namespace = apply_filters(self::namespace('event_namespace'), self::$_global_namespace);
+
     $global_submit_event = '
       <script>
       window.dataLayer = window.dataLayer || [];
       dataLayer.push({
-        event: "lvl.form_submit",
+        event: "' . $event_namespace . '.form_submit",
         form: ' . json_encode($form_object) . ',
       });
       </script>
     ';
 
-    $redirect_delay = apply_filters('lvl:gforms_gtm/redirect_delay', $this->redirect_delay);
     $redirect_interstitial = $this->get_redirect_interstitial();
 
     if (isset($confirmation['redirect'])) {
@@ -150,7 +159,7 @@ class Adapter
         <script>
         setTimeout(function(){
           window.location.replace("' . $redirect . '");
-        }, ' . $redirect_delay . ' );
+        }, ' . $this->redirect_delay . ' );
         </script>
       ';
 
@@ -166,7 +175,7 @@ class Adapter
           <script>
           setTimeout(function(){
             window.location.replace("' . $matches[1] . '");
-          }, ' . $redirect_delay . ' );
+          }, ' . $this->redirect_delay . ' );
           </script>
         ';
 
