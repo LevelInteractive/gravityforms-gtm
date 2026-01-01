@@ -3,33 +3,55 @@
  * Plugin Name:       Gravity Forms - GTM Adapter
  * Plugin URI:        https://www.level.agency
  * Description:       A better GTM integration for Gravity Forms. Overrides the default confirmation behavior to allow for a redirect interstitial and a global submit event.
- * Version:           1.0
+ * Version:           1.0.0
  * Requires at least: 6.3
  * Requires PHP:      8.0
  * License:           MIT
  * Author:            Derek Cavaliero
  * Author URI:        https://www.level.agency
- * Text Domain:       lvl:gforms-gtm
  */
 
-namespace Lvl\GravityFromsGTM;
+namespace Lvl\GravityForms\GTM;
 
 use GFAPI;
  
 if (! defined('WPINC'))
   die;
 
-class GravityFromsGTM
+const VERSION = '1.0.0';
+
+class Adapter
 {
+  public static string $_global_namespace = 'lvl';
+  public static string $_plugin_namespace = 'gravityforms/gtm';
+
   public int $redirect_delay = 2000;
   public string $redirect_interstitial = "We are processing your submission. Please wait...";
   public string $redirect_spinner_color = '#000';
 
+  private static $instance = null;
+  
+  public static function instance()
+  {
+    if (self::$instance === null)
+      self::$instance = new self();
+
+    return self::$instance;
+  }
+
+  public static function namespace(?string $append): string
+  {
+    $base = self::$_global_namespace . ':' . self::$_plugin_namespace;
+    return $append ? $base . '/' . $append : $base;
+  }
+
   public function __construct()
   {
-    if (! class_exists('GFAPI'))
-      return;
+    add_action('init', [$this, 'init']);
+  }
 
+  public function init()
+  {
     add_action('wp_head', [$this, 'add_css_vars'], 1, 2);
     add_filter('gform_confirmation', [$this, 'confirmation_override'], 20, 4);
     add_filter('gform_form_args', [$this, 'force_ajax_submission_mode'], 10, 1);
@@ -52,7 +74,7 @@ class GravityFromsGTM
 
   public function load_stylesheet(): void
   {
-    wp_enqueue_style('gforms-gtm', plugin_dir_url(__FILE__) . 'public/styles.css', [], '1.0.0'); 
+    wp_enqueue_style(self::namespace('styles'), plugin_dir_url(__FILE__) . 'public/styles.css', [], '1.0.0'); 
   }
 
   public function force_ajax_submission_mode(array $form_args): array
@@ -268,4 +290,10 @@ class GravityFromsGTM
 
 }
 
-new GravityFromsGTM();
+require_once __DIR__ . '/lib/Updater.php';
+$updater = new Updater(__FILE__, VERSION);
+
+register_activation_hook(__FILE__, [$updater, 'on_activate']);
+register_deactivation_hook(__FILE__, [$updater, 'on_deactivate']);
+
+Adapter::instance();
