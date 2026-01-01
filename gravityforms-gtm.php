@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Gravity Forms - GTM Adapter
  * Plugin URI:        https://www.level.agency
- * Description:       A better GTM integration for Gravity Forms. Overrides the default confirmation behavior to allow for a redirect interstitial and a global submit event.
+ * Description:       A better GTM integration for Gravity Forms. Overrides/extends the default confirmation behavior to allow for a redirect interstitial and well structured global submit event.
  * Version:           2.0.0
  * Requires at least: 6.3
  * Requires PHP:      8.0
